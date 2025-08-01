@@ -1,0 +1,8 @@
+# Archivo de prueba
+Este es un archivo de prueba subido desde la aplicación Tablero 1.
+
+Fecha: 2025-08-01T23:47:53.957Z
+Repositorio: tablero25/tablero-1
+Token configurado: SÍ
+
+¡La integración con GitHub está funcionando correctamente!
