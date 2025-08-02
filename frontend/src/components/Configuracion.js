@@ -30,11 +30,11 @@ const Configuracion = ({ user, onClose }) => {
             'Content-Type': 'application/json'
           };
 
-          const [usuariosRes, rolesRes, establecimientosRes] = await Promise.all([
-            fetch('http://localhost:5000/auth/usuarios', { headers }),
-            fetch('http://localhost:5000/auth/roles', { headers }),
-            fetch('http://localhost:5000/auth/establecimientos')
-          ]);
+                                const [usuariosRes, rolesRes, establecimientosRes] = await Promise.all([
+                        fetch('/login-api/usuarios', { headers }),
+                        fetch('/login-api/roles', { headers }),
+                        fetch('/login-api/establecimientos')
+                      ]);
 
           const usuariosData = await usuariosRes.json();
           const rolesData = await rolesRes.json();

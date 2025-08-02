@@ -9,6 +9,7 @@ import ConfigButton from './components/ConfigButton';
 import Configuracion from './components/Configuracion';
 import logoSDO from './logoo.png';
 import { API_ENDPOINTS } from './config/api';
+import { tokenDebug, verifyTokenOnLoad } from './utils/tokenDebug';
 
 // Componente del logo de Salta
 // const SaltaLogo = () => (
@@ -1937,17 +1938,24 @@ function App() {
 
   // Verificar si hay un usuario logueado al cargar la app
   useEffect(() => {
+    // Debug del token al cargar
+    tokenDebug.checkTokenStatus();
+    
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
 
+    console.log('🔍 Verificando token al cargar:', token ? 'SÍ' : 'NO');
+    console.log('👤 Usuario guardado:', savedUser ? 'SÍ' : 'NO');
+
     if (token && savedUser) {
       // Verificar token con el backend
-              fetch(API_ENDPOINTS.VERIFY, {
+      fetch(API_ENDPOINTS.VERIFY, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       .then(res => {
+        console.log('🔐 Respuesta de verificación:', res.status);
         if (res.ok) {
           return res.json();
         } else {
@@ -1955,23 +1963,25 @@ function App() {
         }
       })
       .then(data => {
+        console.log('✅ Verificación exitosa:', data);
         if (data.success) {
           setUser(JSON.parse(savedUser));
         } else {
+          console.log('❌ Token inválido, limpiando localStorage');
           // Token inválido, limpiar localStorage
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          tokenDebug.clearStorage();
         }
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('❌ Error de verificación:', error.message);
         // Error de conexión o token inválido, limpiar localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        tokenDebug.clearStorage();
       })
       .finally(() => {
         setLoading(false);
       });
     } else {
+      console.log('⚠️ No hay token o usuario guardado');
       setLoading(false);
     }
   }, []);
@@ -1983,8 +1993,8 @@ function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    console.log('🚪 Cerrando sesión...');
+    tokenDebug.clearStorage();
     setUser(null);
   };
 

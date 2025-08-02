@@ -1,11 +1,11 @@
 const { Client } = require('pg');
 
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'tablerodecontrol',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '', // Sin contraseña para local
+  host: process.env.PGHOST || process.env.DB_HOST || 'localhost',
+  port: process.env.PGPORT || process.env.DB_PORT || 5432,
+  database: process.env.PGDATABASE || process.env.DB_NAME || 'tablerodecontrol',
+  user: process.env.PGUSER || process.env.DB_USER || 'postgres',
+  password: process.env.PGPASSWORD || process.env.DB_PASSWORD || '', // Sin contraseña para local
   // Configuración SSL para Neon (solo en producción)
   ...(process.env.NODE_ENV === 'production' && {
     ssl: {

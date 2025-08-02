@@ -109,3 +109,4 @@ Thumbs.db
 # Uploaded files
 backend/data/
 backend/temp/ 
+.vercel

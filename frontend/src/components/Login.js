@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Auth.css';
 import logoSDO from '../logoo.png';
 import { API_ENDPOINTS } from '../config/api';
 
 const Login = ({ onLogin, onSwitchToRegister }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     dni: '',
     password: ''
@@ -45,6 +47,8 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         onLogin(data.user);
+        // Redirigir automáticamente a /tablero
+        navigate('/tablero');
       } else {
         setError(data.error || 'Error en el login');
       }

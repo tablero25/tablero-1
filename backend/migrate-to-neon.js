@@ -2,13 +2,13 @@ const { Client } = require('pg');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Configuración de Neon (reemplaza con tus credenciales)
+// Configuración de Neon con credenciales reales
 const neonConfig = {
-  host: process.env.NEON_HOST || 'ep-cool-forest-123456.us-east-2.aws.neon.tech',
+  host: 'ep-dark-butterfly-ad0yjgp9-pooler.c-2.us-east-1.aws.neon.tech',
   port: 5432,
-  database: process.env.NEON_DATABASE || 'neondb',
-  user: process.env.NEON_USER || 'default',
-  password: process.env.NEON_PASSWORD || 'tu_contraseña_aqui',
+  database: 'neondb',
+  user: 'neondb_owner',
+  password: 'npg_xTvKB3ZsUWu4',
   ssl: {
     rejectUnauthorized: false
   }
@@ -23,6 +23,7 @@ const neonClient = new Client(neonConfig);
 async function migrateToNeon() {
   try {
     console.log('🔄 Iniciando migración a Neon...');
+    console.log('🔧 Conectando a:', neonConfig.host);
     
     // Conectar a Neon
     await neonClient.connect();

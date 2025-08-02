@@ -24,7 +24,7 @@ const Roles = ({ usuarios, setUsuarios, roles, establecimientos }) => {
         requestBody.establecimientoId = newEstablecimientoId;
       }
 
-      const response = await fetch('http://localhost:5000/auth/usuarios/update-role', {
+                                const response = await fetch('/login-api/usuarios/update-role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

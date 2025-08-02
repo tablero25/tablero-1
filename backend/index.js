@@ -8,6 +8,7 @@ const XLSX = require('xlsx');
 // Importar configuración de base de datos PostgreSQL y rutas de autenticación
 const { connect: connectPostgreSQL } = require('./config/database-postgresql');
 const { router: authRouter } = require('./routes/auth');
+const GitHubStorage = require('./github-storage');
 
 // Formatos de Excel soportados por la librería xlsx
 const EXCEL_FORMATS = [
@@ -132,7 +133,28 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas de autenticación
-app.use('/api/auth', authRouter);
+app.use('/login-api', authRouter);
+
+// Rutas de GitHub
+const githubRouter = require('./routes/github');
+app.use('/api/github', githubRouter);
+
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// Manejar todas las rutas del frontend (SPA)
+app.get('*', (req, res) => {
+  // Si es una ruta de API, no redirigir
+  if (req.path.startsWith('/api/') || req.path.startsWith('/login-api/') || req.path.startsWith('/guardar/') || req.path.startsWith('/archivos/') || req.path.startsWith('/leer/') || req.path.startsWith('/ranking/') || req.path.startsWith('/establecimientos/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // Para todas las demás rutas, servir el index.html del frontend
+  res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+});
+
+// Inicializar GitHub Storage
+const githubStorage = new GitHubStorage();
 
 // Configuración temporal de multer - guardaremos en carpeta temporal primero
 const storage = multer.diskStorage({
@@ -230,6 +252,21 @@ app.post('/guardar/:establecimiento/:anio', upload.single('file'), async (req, r
     const archivoExiste = fs.existsSync(archivoFinal);
     console.log('✅ ¿Archivo guardado correctamente?', archivoExiste);
     
+    // Subir a GitHub también
+    try {
+      const { uploadToGitHub } = require('./github-upload');
+      const githubResult = await uploadToGitHub(archivoFinal, establecimiento, anioFinal.toString());
+      
+      if (githubResult.success) {
+        console.log('✅ Archivo subido a GitHub:', githubResult.downloadUrl);
+        console.log('📂 Ruta en GitHub:', githubResult.path);
+      } else {
+        console.log('⚠️ Error subiendo a GitHub:', githubResult.error);
+      }
+    } catch (githubError) {
+      console.log('⚠️ Error subiendo a GitHub:', githubError.message);
+    }
+    
     // Preparar respuesta
     const respuesta = {
       success: true,
@@ -302,6 +339,68 @@ app.get('/archivos/:establecimiento/:anio', (req, res) => {
     res.json({ archivos });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Ruta para obtener lista de archivos desde GitHub
+app.get('/github/archivos/:establecimiento/:anio', async (req, res) => {
+  try {
+    const { establecimiento, anio } = req.params;
+    const tag = `${establecimiento}-${anio}`;
+    
+    const result = await githubStorage.listFiles(tag);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        archivos: result.files.map(file => ({
+          nombre: file.name,
+          tamaño: file.size,
+          fechaCreacion: file.createdAt,
+          urlDescarga: file.downloadUrl
+        }))
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'No se encontraron archivos',
+        archivos: []
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error listando archivos de GitHub:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      archivos: []
+    });
+  }
+});
+
+// Ruta para descargar archivo desde GitHub
+app.get('/github/descargar/:establecimiento/:anio/:nombreArchivo', async (req, res) => {
+  try {
+    const { establecimiento, anio, nombreArchivo } = req.params;
+    const tag = `${establecimiento}-${anio}`;
+    
+    const result = await githubStorage.downloadFile(nombreArchivo, tag);
+    
+    if (result.success) {
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+      res.send(result.data);
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Archivo no encontrado'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error descargando archivo de GitHub:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
   }
 });
 
@@ -1658,14 +1757,14 @@ app.get('/guardia/descargar/:establecimiento/:anio/:mes', (req, res) => {
 // Probar conexión a la base de datos al iniciar
 connectPostgreSQL().then(connected => {
   if (connected) {
-    app.listen(5000, () => {
-      console.log('Backend Excel server running on http://localhost:5000');
+    app.listen(3001, () => {
+      console.log('Backend Excel server running on http://localhost:3001');
       console.log('✅ Sistema de autenticación habilitado');
     });
   } else {
     console.log('⚠️ Servidor iniciado sin base de datos');
-    app.listen(5000, () => {
-      console.log('Backend Excel server running on http://localhost:5000');
+    app.listen(3001, () => {
+      console.log('Backend Excel server running on http://localhost:3001');
     });
   }
 }); 

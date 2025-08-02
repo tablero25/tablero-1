@@ -10,7 +10,7 @@ const Usuarios = ({ usuarios, setUsuarios, roles, establecimientos }) => {
     setMessage('');
 
     try {
-      const response = await fetch(`http://localhost:5000/auth/usuarios/${action}`, {
+                                const response = await fetch(`/login-api/usuarios/${action}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
