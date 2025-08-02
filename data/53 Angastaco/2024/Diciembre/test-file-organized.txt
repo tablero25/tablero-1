@@ -1,0 +1,9 @@
+# Archivo de prueba - Estructura organizada
+Este archivo fue subido usando la nueva función de GitHub.
+
+Fecha: 2025-08-02T00:07:35.808Z
+Establecimiento: 53 Angastaco
+Año: 2024
+Mes: Diciembre
+
+¡La estructura organizada está funcionando correctamente!
